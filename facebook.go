@@ -99,7 +99,7 @@ func (fbu *FacebookUser) ParseBirthdayString() error {
 
 func (app *App) CheckAccessToken(authResponse *FacebookAuthResponse) (bool, error){
     var url string
-    url = fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s" , authResponse.AccessToken, facebookAppID, facebookClientSecret)
+    url = fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s" , authResponse.AccessToken, app.AppID, app.AppSecret)
 
     resp, err := http.Get(url)
     if err != nil {
@@ -118,14 +118,14 @@ func (app *App) CheckAccessToken(authResponse *FacebookAuthResponse) (bool, erro
         return false, jsonErr
     }
 
-    if debug.Data.UserId == authResponse.UserId && debug.Data.AppId == facebookAppID {
+    if debug.Data.UserId == authResponse.UserId && debug.Data.AppId == app.AppID {
         return true, nil
     } 
   return false, errors.New("token inspection failed")
 }
 
   
-  
+  /*
 func (authResponse *FacebookAuthResponse) CheckAccessToken() (bool,error) {
     var url string
     url = fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s" , authResponse.AccessToken, facebookAppID, facebookClientSecret)
@@ -152,3 +152,5 @@ func (authResponse *FacebookAuthResponse) CheckAccessToken() (bool,error) {
     } 
   return false, errors.New("token inspection failed")
 }
+
+*/
