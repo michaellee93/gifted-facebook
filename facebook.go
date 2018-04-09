@@ -10,6 +10,11 @@ import (
   "strconv"
 )
 
+type App struct {
+  AppID string
+  AppSecret string
+}
+
 type User struct {
     Name string `json:"name"`
     Username string `json:"username,omitEmpty"`
@@ -92,6 +97,35 @@ func (fbu *FacebookUser) ParseBirthdayString() error {
     return err
 }
 
+func (app *App) CheckAccessToken(authResponse *FacebookAuthResponse) (bool, error){
+    var url string
+    url = fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s" , authResponse.AccessToken, facebookAppID, facebookClientSecret)
+
+    resp, err := http.Get(url)
+    if err != nil {
+        return false, err
+    }
+
+    body, bodyErr := ioutil.ReadAll(resp.Body)
+    if bodyErr != nil {
+        return false, bodyErr
+    }
+
+    debug := new(FacebookTokenDebugInformation)
+
+    jsonErr := json.Unmarshal(body, &debug)
+    if jsonErr != nil {
+        return false, jsonErr
+    }
+
+    if debug.Data.UserId == authResponse.UserId && debug.Data.AppId == facebookAppID {
+        return true, nil
+    } 
+  return false, errors.New("token inspection failed")
+}
+
+  
+  
 func (authResponse *FacebookAuthResponse) CheckAccessToken() (bool,error) {
     var url string
     url = fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s" , authResponse.AccessToken, facebookAppID, facebookClientSecret)
