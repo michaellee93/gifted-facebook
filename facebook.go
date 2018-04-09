@@ -2,7 +2,7 @@ package facebook
 
 import (
   "strings"
-  "log"
+  "fmt"
   "io/ioutil"
   "errors"
   "encoding/json"
