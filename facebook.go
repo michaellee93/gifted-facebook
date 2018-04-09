@@ -4,6 +4,10 @@ import (
   "strings"
   "log"
   "io/ioutil"
+  "errors"
+  "encoding/json"
+  "net/http"
+  "strconv"
 )
 
 type User struct {
@@ -47,7 +51,7 @@ type FacebookUser struct {
 }
 
 
-func (fbu *FacebookUser) ToGiftedUser() User{
+func (fbu *FacebookUser) ToGiftedUser() (User,error){
     var u User
 
     u.Name = fbu.Name
@@ -57,18 +61,18 @@ func (fbu *FacebookUser) ToGiftedUser() User{
 
     err := fbu.ParseBirthdayString()
     if err != nil {
-        log.Println(err)
+        return u, err
     }
 
     u.Birthday = fbu.Birthday
 
     convertedId, errConv := strconv.ParseInt(fbu.Id, 10, 64)
-    if errConv != nil {
-        log.Println(errConv)
-    }
     u.FacebookId = convertedId
+    if errConv != nil {
+        return u, errConv
+    }
 
-    return u
+    return u, nil
 }
 
 func (fbu *FacebookUser) ParseBirthdayString() error {
@@ -88,29 +92,29 @@ func (fbu *FacebookUser) ParseBirthdayString() error {
     return err
 }
 
-func (authResponse *FacebookAuthResponse) checkAccessToken() bool {
+func (authResponse *FacebookAuthResponse) CheckAccessToken() (bool,error) {
     var url string
     url = fmt.Sprintf("https://graph.facebook.com/debug_token?input_token=%s&access_token=%s|%s" , authResponse.AccessToken, facebookAppID, facebookClientSecret)
 
     resp, err := http.Get(url)
     if err != nil {
-        log.Println("error: ", err)
+        return false, err
     }
 
     body, bodyErr := ioutil.ReadAll(resp.Body)
     if bodyErr != nil {
-        log.Println("Error: ", bodyErr)
+        return false, bodyErr
     }
 
     debug := new(FacebookTokenDebugInformation)
 
     jsonErr := json.Unmarshal(body, &debug)
     if jsonErr != nil {
-        log.Println(jsonErr)
+        return false, jsonErr
     }
 
     if debug.Data.UserId == authResponse.UserId && debug.Data.AppId == facebookAppID {
-        return true
+        return true, nil
     } 
-    return false
+  return false, errors.New("token inspection failed")
 }
