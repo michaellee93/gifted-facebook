@@ -3,7 +3,7 @@ package facebook
 import (
   "strings"
   "log"
-  "ioutil"
+  "io/ioutil"
 )
 
 type User struct {
